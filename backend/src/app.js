@@ -4,6 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import router from "./routes/index.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -58,7 +59,7 @@ app.use(morgan('dev'));
 |--------------------------------------------------------------------------
 */
 
-app.use("/api/v1", router);
+app.use("/api/v1/auth", authRoutes);
 
 
 
