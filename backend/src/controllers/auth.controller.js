@@ -1,3 +1,55 @@
+import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+
+
 export const registerPatient = async (req, res) => {
-    res.status(200).json({ message: "Patient registration route working" });
+    try {
+        const { name, email, password, gender } = req.body;
+
+        // Checking required fields
+        if (!name?.trim() || !email?.trim() || !password?.trim() || !gender?.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required."
+            });
+        }
+
+        // checking duplicate emails 
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "Email already registered."
+            });
+        }
+
+        // Creating hashed password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Creating new user
+        const patient = new User({
+            name,
+            email,
+            password: hashedPassword,
+            gender,
+            role: "patient",
+            accountStatus: "approved"
+        });
+
+        // saving patient
+        await patient.save();
+
+        // returning the success response
+        res.status(200).json({
+            success: true,
+            message: "Patient registered successfully.",
+        });
+    } catch (err) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
 };
