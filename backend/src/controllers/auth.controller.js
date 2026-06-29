@@ -14,6 +14,15 @@ export const registerPatient = async (req, res) => {
             });
         }
 
+        // checking for valid email address
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address."
+            });
+        }
+
         // checking duplicate emails 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
