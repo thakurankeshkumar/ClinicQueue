@@ -64,7 +64,6 @@ export const registerDoctor = async (req, res) => {
     }
 };
 
-
 // Patient registration function
 export const registerPatient = async (req, res) => {
     try {
@@ -168,13 +167,21 @@ export const loginUser = async (req, res) => {
             });
         }
 
-
         // Checking doctor approval
-        if (user.role === "doctor" && user.accountStatus !== "approved") {
-            return res.status(403).json({
-                success: false,
-                message: "Your account is not approved yet. Please wait for approval."
-            });
+        if (user.role === "doctor") {
+            if (user.accountStatus === "pending") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Your account is awaiting administrator approval."
+                });
+            }
+
+            if (user.accountStatus === "rejected") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Your registration request has been rejected."
+                });
+            }
         }
 
         // Generate JWT token 
@@ -209,6 +216,26 @@ export const loginUser = async (req, res) => {
     }
 }
 
+// User logout function
+export const logoutUser = async (req, res) => {
+    try {
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: env.NODE_ENV === "production"
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully."
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error."
+        })
+    }
+}
 
 // User profile function
 export const getProfile = async (req, res) => {
