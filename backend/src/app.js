@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import doctorRoutes from "./routes/doctor.routes.js";
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use(morgan('dev'));
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/doctor", doctorRoutes);
 
 
 
