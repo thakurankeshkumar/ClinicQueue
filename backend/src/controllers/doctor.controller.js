@@ -1,4 +1,5 @@
 import Doctor from "../models/Doctor.js";
+import DoctorUpdateRequest from "../models/DoctorUpdateRequest.js";
 
 // Complete doctor profile function
 export const completeDoctorProfile = async (req, res) => {
@@ -96,3 +97,194 @@ export const completeDoctorProfile = async (req, res) => {
     }
 }
 
+// Fecth doctor profile function
+export const getDoctorProfile = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+        if (!doctor) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor profile not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Doctor profile retrieved successfully.",
+            doctor
+        })
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}
+
+// Request doctor profile update function
+export const requestDoctorProfileUpdate = async (req, res) => {
+    try {
+        const { phoneNumber, specialization, qualification, experience, consultationFee, availableDays, } = req.body;
+
+        // Check required fields
+        if (!phoneNumber?.trim() || !specialization?.trim() || !qualification?.trim() || experience === undefined || consultationFee === undefined ||
+            !Array.isArray(availableDays) ||
+            availableDays.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required."
+            });
+        }
+
+        // Validate phone number
+        const phoneRegex = /^[6-9]\d{9}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid phone number."
+            });
+        }
+
+        // Validate experience
+        if (!Number.isInteger(experience) || experience < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Experience must be a valid positive number."
+            });
+        }
+
+        // Validate consultation fee
+        if (!Number.isInteger(consultationFee) || consultationFee <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Consultation fee must be greater than zero."
+            });
+        }
+
+        // Normalize available days
+        const normalizedDays = availableDays.map(day => day.trim().charAt(0).toUpperCase() + day.trim().slice(1).toLowerCase());
+
+        // Validate available days
+        const validDays = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+        ];
+
+        const isValidDays = normalizedDays.every(day =>
+            validDays.includes(day)
+        );
+
+        if (!isValidDays) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid available days."
+            });
+        }
+
+        // Check duplicate available days
+        const uniqueDays = new Set(normalizedDays);
+
+        if (uniqueDays.size !== normalizedDays.length) {
+            return res.status(400).json({
+                success: false,
+                message: "Duplicate available days are not allowed."
+            });
+        }
+
+        // Find doctor profile
+        const doctor = await Doctor.findOne({
+            userId: req.user._id
+        });
+
+        if (!doctor) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor profile not found."
+            });
+        }
+
+        // Check if submitted data is same as current doctor profile
+        const isSameAsDoctorProfile = doctor.phoneNumber === phoneNumber && doctor.specialization === specialization && doctor.qualification === qualification &&
+            doctor.experience === experience && doctor.consultationFee === consultationFee && JSON.stringify(doctor.availableDays) === JSON.stringify(normalizedDays);
+
+        if (isSameAsDoctorProfile) {
+            return res.status(400).json({
+                success: false,
+                message: "No changes detected."
+            });
+        }
+
+        // Check for existing pending update request
+        let updateRequest = await DoctorUpdateRequest.findOne({
+            doctorId: doctor._id,
+            status: "pending"
+        });
+
+        if (updateRequest) {
+
+            const isSameAsPendingRequest =
+                updateRequest.phoneNumber === phoneNumber &&
+                updateRequest.specialization === specialization &&
+                updateRequest.qualification === qualification &&
+                updateRequest.experience === experience &&
+                updateRequest.consultationFee === consultationFee &&
+                JSON.stringify(updateRequest.availableDays) === JSON.stringify(normalizedDays);
+
+            if (isSameAsPendingRequest) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No changes detected."
+                });
+            }
+
+            // Update existing pending request
+            updateRequest.phoneNumber = phoneNumber;
+            updateRequest.specialization = specialization;
+            updateRequest.qualification = qualification;
+            updateRequest.experience = experience;
+            updateRequest.consultationFee = consultationFee;
+            updateRequest.availableDays = normalizedDays;
+
+            await updateRequest.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Pending profile update request updated successfully."
+            });
+        }
+
+        // Create new update request
+        updateRequest = new DoctorUpdateRequest({
+            doctorId: doctor._id,
+            requestedBy: req.user._id,
+            phoneNumber,
+            specialization,
+            qualification,
+            experience,
+            consultationFee,
+            availableDays: normalizedDays,
+        });
+
+        await updateRequest.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "Doctor profile update request submitted successfully."
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
