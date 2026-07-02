@@ -452,3 +452,65 @@ export const completeAppointment = async (req, res) => {
         });
     }
 };
+
+// Get Patient Dashboard function
+export const getPatientDashboard = async (req, res) => {
+    try {
+        // Today's date range
+        const today = new Date();
+
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Dashboard data
+        const [upcomingAppointments, pendingAppointments, completedAppointments, rejectedAppointments, recentAppointments] = await Promise.all([
+
+            // Upcoming approved appointments
+            Appointment.countDocuments({
+                patientId: req.user._id,
+                status: "approved",
+                appointmentDate: { $gt: endOfDay }
+            }),
+
+            // Pending appointments
+            Appointment.countDocuments({
+                patientId: req.user._id,
+                status: "pending"
+            }),
+
+            // Completed appointments
+            Appointment.countDocuments({
+                patientId: req.user._id,
+                status: "completed"
+            }),
+
+            // Rejected appointments
+            Appointment.countDocuments({
+                patientId: req.user._id,
+                status: "rejected"
+            }),
+
+            // Recent appointments
+            Appointment.find({ patientId: req.user._id }).populate({
+                path: "doctorId",
+                populate: { path: "userId", select: "name" }
+            }).select("doctorId reasonForVisit appointmentDate appointmentTime tokenNumber status rejectionReason updatedAt").sort({ updatedAt: -1 }).limit(5)
+        ]);
+
+        return res.status(200).json({
+            success: true, upcomingAppointments,
+            pendingAppointments, completedAppointments,
+            rejectedAppointments, recentAppointments
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};

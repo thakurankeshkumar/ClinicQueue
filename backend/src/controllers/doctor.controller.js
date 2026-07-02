@@ -1,5 +1,6 @@
 import Doctor from "../models/Doctor.js";
 import DoctorUpdateRequest from "../models/DoctorUpdateRequest.js";
+import Appointment from "../models/Appointment.js";
 
 // Complete doctor profile function
 export const completeDoctorProfile = async (req, res) => {
@@ -282,6 +283,71 @@ export const requestDoctorProfileUpdate = async (req, res) => {
     } catch (err) {
         console.error(err);
 
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+// Get Doctor Dashboard function
+export const getDoctorDashboard = async (req, res) => {
+    try {
+
+        // Find doctor profile
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+        if (!doctor) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor profile not found."
+            });
+        }
+
+        // Today's date range
+        const today = new Date();
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Dashboard data
+        const [todayAppointments, pendingRequests, completedToday, upcomingAppointments, recentAppointments] = await Promise.all([
+
+            // Today's approved appointments
+            Appointment.countDocuments({
+                doctorId: doctor._id, status: "approved",
+                appointmentDate: { $gte: startOfDay, $lte: endOfDay }
+            }),
+
+            // Pending appointment requests
+            Appointment.countDocuments({ doctorId: doctor._id, status: "pending" }),
+
+            // Completed appointments today
+            Appointment.countDocuments({
+                doctorId: doctor._id, status: "completed",
+                completedAt: { $gte: startOfDay, $lte: endOfDay }
+            }),
+
+            // Upcoming approved appointments
+            Appointment.countDocuments({
+                doctorId: doctor._id, status: "approved",
+                appointmentDate: { $gt: endOfDay }
+            }),
+
+            // Recent appointments
+            Appointment.find({ doctorId: doctor._id }).populate({ path: "patientId", select: "name gender" }).select(
+                "patientId reasonForVisit rejectionReason appointmentDate appointmentTime tokenNumber status updatedAt").sort({ updatedAt: -1 }).limit(5)
+
+        ]);
+
+        return res.status(200).json({
+            success: true, todayAppointments,
+            pendingRequests, completedToday,
+            upcomingAppointments, recentAppointments
+        });
+
+    } catch (err) {
+        console.error(err);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"
