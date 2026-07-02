@@ -274,10 +274,10 @@ Protected Controller
 
 | Method | Endpoint |
 |---------|----------|
-| POST | `/api/v1/appointments` |
-| GET | `/api/v1/appointments/my` |
-| GET | `/api/v1/appointments` |
-| PATCH | `/api/v1/appointments/:id/approve` |
+| POST | `/api/v1/appointment` |
+| GET | `/api/v1/appointment/my` |
+| GET | `/api/v1/appointment` |
+| PATCH | `/api/v1/appointment/:id/approve` |
 
 ---
 
