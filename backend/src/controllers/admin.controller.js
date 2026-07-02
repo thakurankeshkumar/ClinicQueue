@@ -1,6 +1,7 @@
 import User from "../models/User.js"
 import DoctorUpdateRequest from "../models/DoctorUpdateRequest.js"
 import Doctor from "../models/Doctor.js"
+import Appointment from "../models/Appointment.js"
 
 // Fetching all the pending doctors
 export const getPendingDoctors = async (req, res) => {
@@ -184,6 +185,56 @@ export const rejectDoctorProfileUpdate = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Profile update request rejected successfully."
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+// Get Admin Dashboard function
+export const getAdminDashboard = async (req, res) => {
+    try {
+        // Today's date range
+        const today = new Date();
+
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Dashboard data
+        const [totalDoctors, totalPatients, pendingDoctors, pendingProfileRequests, todayAppointments, completedAppointmentsToday] = await Promise.all([
+
+            // Total doctors
+            User.countDocuments({ role: "doctor" }),
+
+            // Total patients
+            User.countDocuments({ role: "patient" }),
+
+            // Pending doctor approvals
+            User.countDocuments({ role: "doctor", accountStatus: "pending" }),
+
+            // Pending doctor profile update requests
+            DoctorUpdateRequest.countDocuments({ status: "pending" }),
+
+            // Today's approved appointments
+            Appointment.countDocuments({ status: "approved", appointmentDate: { $gte: startOfDay, $lte: endOfDay } }),
+
+            Appointment.countDocuments({ status: "completed", completedAt: { $gte: startOfDay, $lte: endOfDay } })
+
+        ]);
+
+        return res.status(200).json({
+            success: true, totalDoctors,
+            totalPatients, pendingDoctors,
+            pendingProfileRequests, todayAppointments, completedAppointmentsToday
         });
 
     } catch (err) {
