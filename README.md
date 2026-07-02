@@ -1,8 +1,8 @@
 # 🏥 ClinicQueue Backend
 
-A secure and scalable backend for **ClinicQueue**, a clinic management system built with **Node.js, Express.js, and MongoDB**.
+A secure, scalable, and role-based backend for **ClinicQueue**, a clinic appointment and queue management system built with **Node.js, Express.js, and MongoDB**.
 
-ClinicQueue is designed to simplify clinic appointment management by providing secure authentication, doctor verification, appointment booking, and approval workflows with role-based access control.
+ClinicQueue simplifies clinic operations by enabling secure authentication, doctor verification, appointment booking, doctor profile management, appointment workflows, and dashboard analytics for different user roles.
 
 ---
 
@@ -49,6 +49,7 @@ backend/
 - Patient Registration
 - Doctor Registration
 - User Login
+- User Logout
 - JWT Authentication
 - HTTP-Only Cookie Authentication
 - Protected Profile API
@@ -66,10 +67,9 @@ backend/
 ## 👨‍⚕️ Doctor Registration Workflow
 
 - Doctor Registration
-- Doctor Account Pending Approval
-- Admin View Pending Doctors
-- Admin Approve Doctor
-- Admin Reject Doctor
+- Pending Admin Approval
+- Doctor Approval
+- Doctor Rejection
 - Only Approved Doctors Can Login
 
 ---
@@ -88,7 +88,7 @@ Admin can:
 - Approve Profile Updates
 - Reject Profile Updates
 
-Doctors become available for appointments only after completing their profile.
+Doctors become available for appointment booking only after completing their profile.
 
 ---
 
@@ -98,17 +98,35 @@ Doctors become available for appointments only after completing their profile.
 
 - Book Appointment
 - View Own Appointments
+- View Dashboard
 
 ### Doctor
 
 - View Pending Appointment Requests
 - Approve Appointment
+- Reject Appointment
+- Complete Appointment
+- View Dashboard
 
 Appointment approval includes:
 
 - Appointment Date
 - Appointment Time
 - Consultation Duration
+- Queue Token Generation
+
+---
+
+## 👑 Admin Dashboard
+
+Admin can monitor:
+
+- Total Doctors
+- Total Patients
+- Pending Doctor Approvals
+- Pending Profile Update Requests
+- Today's Appointments
+- Completed Appointments Today
 
 ---
 
@@ -118,8 +136,11 @@ Appointment approval includes:
 
 - Register
 - Login
+- Logout
+- View Profile
 - Book Appointment
 - View Own Appointments
+- View Dashboard
 
 ---
 
@@ -128,16 +149,22 @@ Appointment approval includes:
 - Register
 - Wait for Admin Approval
 - Login
+- Logout
 - Complete Profile
 - Update Profile
 - View Pending Appointment Requests
 - Approve Appointment Requests
+- Reject Appointment Requests
+- Complete Appointment
+- View Dashboard
 
 ---
 
 ## 👑 Admin
 
 - Login
+- Logout
+- View Dashboard
 - View Pending Doctors
 - Approve Doctors
 - Reject Doctors
@@ -150,67 +177,77 @@ Appointment approval includes:
 # 🔄 Application Workflow
 
 ```text
-Patient
-Register
-    │
-    ▼
-Login
-    │
-    ▼
-Book Appointment
-    │
-    ▼
-Pending Approval
-    │
-    ▼
-Doctor Approval
-    │
-    ▼
-Appointment Confirmed
+                        Patient
+                           │
+                     Register / Login
+                           │
+                           ▼
+                  Book Appointment
+                           │
+                           ▼
+                  Pending Appointment
+                           │
+                           ▼
+                         Doctor
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+      Approve Appointment      Reject Appointment
+              │                         │
+              ▼                         ▼
+     Appointment Confirmed      Appointment Rejected
+              │
+              ▼
+     Complete Appointment
 
 
-Doctor
-Register
-    │
-    ▼
-Pending Approval
-    │
-    ▼
-Admin Approval
-    │
-    ▼
-Login
-    │
-    ▼
-Complete Profile
-    │
-    ▼
-Receive Appointment Requests
-    │
-    ▼
-Approve Appointment
+
+                        Doctor
+                           │
+                        Register
+                           │
+                           ▼
+                 Pending Admin Approval
+                           │
+                           ▼
+                   Admin Approval
+                           │
+                           ▼
+                          Login
+                           │
+                           ▼
+                  Complete Profile
+                           │
+                           ▼
+             Submit Profile Verification
+                           │
+                           ▼
+                Admin Profile Approval
+                           │
+                           ▼
+            Available For Appointment Booking
 
 
-Admin
-Login
-    │
-    ▼
-Approve Doctors
-    │
-    ▼
-Approve Doctor Profile
-    │
-    ▼
-Manage System
+
+                         Admin
+                           │
+                          Login
+                           │
+                           ▼
+              Manage Doctors & Profiles
+                           │
+                           ▼
+               Monitor System Dashboard
 ```
 
 ---
 
 # 🔐 Authentication Flow
 
-Authentication is implemented using **JWT** stored in **HTTP-Only Cookies**.
+Authentication is implemented using **JWT (JSON Web Token)** stored inside **HTTP-Only Cookies**.
 
-Every protected request follows this workflow:
+Every protected request follows this flow:
 
 ```text
 Client Request
@@ -251,6 +288,7 @@ Protected Controller
 
 | Method | Endpoint |
 |---------|----------|
+| GET | `/api/v1/admin/dashboard` |
 | GET | `/api/v1/admin/doctors/pending` |
 | PATCH | `/api/v1/admin/doctors/:id/approve` |
 | PATCH | `/api/v1/admin/doctors/:id/reject` |
@@ -264,9 +302,18 @@ Protected Controller
 
 | Method | Endpoint |
 |---------|----------|
+| GET | `/api/v1/doctor/dashboard` |
 | POST | `/api/v1/doctor/profile` |
 | GET | `/api/v1/doctor/profile` |
 | PATCH | `/api/v1/doctor/profile` |
+
+---
+
+## Patient
+
+| Method | Endpoint |
+|---------|----------|
+| GET | `/api/v1/patient/dashboard` |
 
 ---
 
@@ -275,13 +322,15 @@ Protected Controller
 | Method | Endpoint |
 |---------|----------|
 | POST | `/api/v1/appointment` |
-| GET | `/api/v1/appointment/my` |
 | GET | `/api/v1/appointment` |
+| GET | `/api/v1/appointment/my` |
 | PATCH | `/api/v1/appointment/:id/approve` |
+| PATCH | `/api/v1/appointment/:id/reject` |
+| PATCH | `/api/v1/appointment/:id/complete` |
 
 ---
 
-# 📦 Current Database Models
+# 📦 Database Models
 
 - User
 - Doctor
@@ -290,43 +339,73 @@ Protected Controller
 
 ---
 
-# 🚧 Upcoming Features
+# 📊 Dashboards
 
-- Queue Token Generation
-- Appointment Rejection
-- Appointment Completion
-- Appointment Time Conflict Detection
-- Doctor Dashboard
-- Patient Dashboard
-- Admin Dashboard
-- Reports & Analytics
-- Notifications
-- Frontend Development
+## 👨‍⚕️ Doctor Dashboard
+
+- Today's Appointments
+- Pending Appointment Requests
+- Completed Appointments Today
+- Upcoming Appointments
+- Recent Appointments
+
+---
+
+## 👤 Patient Dashboard
+
+- Upcoming Appointments
+- Pending Appointments
+- Completed Appointments
+- Rejected Appointments
+- Recent Appointments
+
+---
+
+## 👑 Admin Dashboard
+
+- Total Doctors
+- Total Patients
+- Pending Doctor Approvals
+- Pending Profile Update Requests
+- Today's Appointments
+- Completed Appointments Today
 
 ---
 
 # 🎯 Current Project Status
 
-### ✅ Completed
+## ✅ Completed
 
 - Project Setup
 - MongoDB Configuration
 - Authentication
 - Authorization
 - Doctor Registration Workflow
+- Doctor Approval Workflow
 - Doctor Profile Management
-- Doctor Profile Approval Workflow
+- Doctor Profile Verification Workflow
 - Appointment Booking
 - Appointment Approval
+- Appointment Rejection
+- Appointment Completion
+- Doctor Dashboard
+- Patient Dashboard
+- Admin Dashboard
 
 ---
 
-### 🚀 In Progress
+## 🚧 Upcoming Features
 
-- Queue Management System
+- Appointment Time Conflict Detection
+- Advanced Queue Management
+- Search & Filtering
+- Pagination
+- Reports & Analytics
+- Email Notifications
+- Frontend Development
 
 ---
 
 # 👨‍💻 Developer
 
-Developed by **Ankesh Kumar**
+Developed with ❤️ by **Ankesh Kumar**
