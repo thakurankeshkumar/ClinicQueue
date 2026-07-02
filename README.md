@@ -1,8 +1,8 @@
 # 🏥 ClinicQueue Backend
 
-A secure and scalable backend for **ClinicQueue**, a clinic management system built with **Node.js, Express.js, and MongoDB**. This project is being developed as part of the **Advanced Backend Development with Node.js, Express, and MongoDB** course.
+A secure and scalable backend for **ClinicQueue**, a clinic management system built with **Node.js, Express.js, and MongoDB**.
 
-The backend follows a modular architecture and currently provides **authentication, authorization, doctor approval workflow, and role-based access control**.
+ClinicQueue is designed to simplify clinic appointment management by providing secure authentication, doctor verification, appointment booking, and approval workflows with role-based access control.
 
 ---
 
@@ -20,7 +20,7 @@ The backend follows a modular architecture and currently provides **authenticati
 
 ---
 
-# 📁 Current Project Structure
+# 📁 Project Structure
 
 ```text
 backend/
@@ -42,9 +42,9 @@ backend/
 
 ---
 
-# ✅ Features Completed
+# ✨ Features Implemented
 
-## Authentication
+## 🔐 Authentication
 
 - Patient Registration
 - Doctor Registration
@@ -53,19 +53,62 @@ backend/
 - HTTP-Only Cookie Authentication
 - Protected Profile API
 
-## Authorization
+---
+
+## 🛡 Authorization
 
 - Authentication Middleware
 - Role-Based Authorization Middleware
-- Admin Protected Routes
+- Protected APIs for Admin, Doctor and Patient
 
-## Doctor Approval Workflow
+---
 
-- Doctor registers with **Pending** status.
-- Admin can view all pending doctors.
-- Admin can approve a doctor.
-- Admin can reject a doctor.
-- Only approved doctors can log in.
+## 👨‍⚕️ Doctor Registration Workflow
+
+- Doctor Registration
+- Doctor Account Pending Approval
+- Admin View Pending Doctors
+- Admin Approve Doctor
+- Admin Reject Doctor
+- Only Approved Doctors Can Login
+
+---
+
+## 🩺 Doctor Profile Management
+
+Doctors can:
+
+- Complete Profile
+- View Profile
+- Submit Profile Update Request
+
+Admin can:
+
+- View Pending Profile Update Requests
+- Approve Profile Updates
+- Reject Profile Updates
+
+Doctors become available for appointments only after completing their profile.
+
+---
+
+## 📅 Appointment Management
+
+### Patient
+
+- Book Appointment
+- View Own Appointments
+
+### Doctor
+
+- View Pending Appointment Requests
+- Approve Appointment
+
+Appointment approval includes:
+
+- Appointment Date
+- Appointment Time
+- Consultation Duration
 
 ---
 
@@ -75,13 +118,22 @@ backend/
 
 - Register
 - Login
-- Access Protected Routes
+- Book Appointment
+- View Own Appointments
+
+---
 
 ## 👨‍⚕️ Doctor
 
 - Register
 - Wait for Admin Approval
-- Login Only After Approval
+- Login
+- Complete Profile
+- Update Profile
+- View Pending Appointment Requests
+- Approve Appointment Requests
+
+---
 
 ## 👑 Admin
 
@@ -89,141 +141,192 @@ backend/
 - View Pending Doctors
 - Approve Doctors
 - Reject Doctors
-- Access Admin Protected Routes
+- View Doctor Profile Update Requests
+- Approve Profile Updates
+- Reject Profile Updates
 
 ---
 
-# 🔄 Authentication Flow
+# 🔄 Application Workflow
 
 ```text
 Patient
 Register
     │
     ▼
-Approved
-    │
-    ▼
 Login
-
-Doctor
-Register
     │
     ▼
-Pending
+Book Appointment
     │
     ▼
-Admin Approval
-    │
-    ▼
-Login
-
-Admin
-Created Manually
-    │
-    ▼
-Login
-```
-
----
-
-# 🔐 Protected Routes
-
-| Method | Endpoint | Access |
-|---------|----------|--------|
-| GET | `/api/v1/auth/profile` | Authenticated Users |
-| GET | `/api/v1/admin/doctors/pending` | Admin |
-| PATCH | `/api/v1/admin/doctors/:id/approve` | Admin |
-| PATCH | `/api/v1/admin/doctors/:id/reject` | Admin |
-
----
-
-# 🔑 Authentication
-
-Authentication is implemented using **JWT (JSON Web Token)** stored inside **HTTP-Only Cookies**.
-
-Every protected route follows this flow:
-
-```text
-Request
-    │
-    ▼
-Authentication Middleware
-    │
-    ▼
-JWT Verification
-    │
-    ▼
-User Verification
-    │
-    ▼
-Role Authorization
-    │
-    ▼
-Protected Route
-```
-
----
-
-# 📌 Current Backend Workflow
-
-```text
-Patient
-   │
-Register
-   │
-Login
-   │
-Access Protected APIs
-
-
-Doctor
-   │
-Register
-   │
 Pending Approval
-   │
+    │
+    ▼
+Doctor Approval
+    │
+    ▼
+Appointment Confirmed
+
+
+Doctor
+Register
+    │
+    ▼
+Pending Approval
+    │
+    ▼
 Admin Approval
-   │
+    │
+    ▼
 Login
-   │
-Access Protected APIs
+    │
+    ▼
+Complete Profile
+    │
+    ▼
+Receive Appointment Requests
+    │
+    ▼
+Approve Appointment
 
 
 Admin
-   │
 Login
-   │
-Manage Doctors
-   │
-Approve / Reject Doctors
+    │
+    ▼
+Approve Doctors
+    │
+    ▼
+Approve Doctor Profile
+    │
+    ▼
+Manage System
 ```
 
 ---
 
-# 🗺️ Project Roadmap
+# 🔐 Authentication Flow
 
-## ✅ Completed
+Authentication is implemented using **JWT** stored in **HTTP-Only Cookies**.
 
-- Backend Setup
-- Express Server Configuration
-- MongoDB Connection
-- User Authentication
-- JWT Authentication
-- HTTP-Only Cookie Authentication
-- Role-Based Authorization
-- Doctor Approval Workflow
+Every protected request follows this workflow:
 
-## 🚧 Upcoming Modules
+```text
+Client Request
+      │
+      ▼
+Authentication Middleware
+      │
+      ▼
+JWT Verification
+      │
+      ▼
+User Verification
+      │
+      ▼
+Role Authorization
+      │
+      ▼
+Protected Controller
+```
 
-- Doctor Management
-- Patient Management
+---
+
+# 📌 Available APIs
+
+## Authentication
+
+| Method | Endpoint |
+|---------|----------|
+| POST | `/api/v1/auth/register/patient` |
+| POST | `/api/v1/auth/register/doctor` |
+| POST | `/api/v1/auth/login` |
+| POST | `/api/v1/auth/logout` |
+| GET | `/api/v1/auth/profile` |
+
+---
+
+## Admin
+
+| Method | Endpoint |
+|---------|----------|
+| GET | `/api/v1/admin/doctors/pending` |
+| PATCH | `/api/v1/admin/doctors/:id/approve` |
+| PATCH | `/api/v1/admin/doctors/:id/reject` |
+| GET | `/api/v1/admin/profile-update-requests` |
+| PATCH | `/api/v1/admin/profile-update-requests/:id/approve` |
+| PATCH | `/api/v1/admin/profile-update-requests/:id/reject` |
+
+---
+
+## Doctor
+
+| Method | Endpoint |
+|---------|----------|
+| POST | `/api/v1/doctor/profile` |
+| GET | `/api/v1/doctor/profile` |
+| PATCH | `/api/v1/doctor/profile` |
+
+---
+
+## Appointment
+
+| Method | Endpoint |
+|---------|----------|
+| POST | `/api/v1/appointments` |
+| GET | `/api/v1/appointments/my` |
+| GET | `/api/v1/appointments` |
+| PATCH | `/api/v1/appointments/:id/approve` |
+
+---
+
+# 📦 Current Database Models
+
+- User
+- Doctor
+- DoctorUpdateRequest
+- Appointment
+
+---
+
+# 🚧 Upcoming Features
+
+- Queue Token Generation
+- Appointment Rejection
+- Appointment Completion
+- Appointment Time Conflict Detection
+- Doctor Dashboard
+- Patient Dashboard
+- Admin Dashboard
+- Reports & Analytics
+- Notifications
+- Frontend Development
+
+---
+
+# 🎯 Current Project Status
+
+### ✅ Completed
+
+- Project Setup
+- MongoDB Configuration
+- Authentication
+- Authorization
+- Doctor Registration Workflow
+- Doctor Profile Management
+- Doctor Profile Approval Workflow
 - Appointment Booking
-- Queue Management
-- Dashboard APIs
-- Frontend Integration
+- Appointment Approval
+
+---
+
+### 🚀 In Progress
+
+- Queue Management System
 
 ---
 
 # 👨‍💻 Developer
 
-**Ankesh**
+Developed by **Ankesh Kumar**
