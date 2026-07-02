@@ -200,6 +200,13 @@ export const approveAppointment = async (req, res) => {
         const selectedDate = new Date(appointmentDate);
         const today = new Date();
 
+        if (isNaN(selectedDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid appointment date."
+            });
+        }
+
         today.setHours(0, 0, 0, 0);
         selectedDate.setHours(0, 0, 0, 0);
         if (selectedDate < today) {
@@ -209,9 +216,8 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        // Validate time format (24-hour HH:mm)
+        // Validate appointment time (24-hour HH:mm)
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
         if (!timeRegex.test(appointmentTime)) {
             return res.status(400).json({
                 success: false,
@@ -220,7 +226,9 @@ export const approveAppointment = async (req, res) => {
         }
 
         // Find doctor profile
-        const doctor = await Doctor.findOne({ userId: req.user._id });
+        const doctor = await Doctor.findOne({
+            userId: req.user._id
+        });
 
         if (!doctor) {
             return res.status(404).json({
@@ -238,14 +246,7 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        if (selectedDate < appointment.preferredDate) {
-            return res.status(400).json({
-                success: false,
-                message: "Appointment date cannot be earlier than the patient's preferred date."
-            });
-        }
-
-        // Verify ownership
+        // Verify appointment belongs to logged-in doctor
         if (appointment.doctorId.toString() !== doctor._id.toString()) {
             return res.status(403).json({
                 success: false,
@@ -253,7 +254,7 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        // Check status
+        // Only pending appointments can be approved
         if (appointment.status !== "pending") {
             return res.status(400).json({
                 success: false,
@@ -261,17 +262,115 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        // Update appointment
+        // Appointment date cannot be earlier than preferred date
+        const preferredDate = new Date(appointment.preferredDate);
+        preferredDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < preferredDate) {
+            return res.status(400).json({
+                success: false,
+                message: "Appointment date cannot be earlier than the patient's preferred date."
+            });
+        }
+
+        const existingAppointment = await Appointment.findOne({
+            doctorId: doctor._id, appointmentDate: selectedDate,
+            appointmentTime, status: "approved"
+        });
+
+        if (existingAppointment) {
+            return res.status(400).json({
+                success: false,
+                message: "An appointment already exists at this time."
+            });
+        }
+
+        // Generate queue token from appointment time
+        const tokenNumber = Number(appointmentTime.replace(":", ""));
+
+        // Approve appointment
         appointment.appointmentDate = selectedDate;
         appointment.appointmentTime = appointmentTime;
         appointment.duration = duration;
+        appointment.tokenNumber = tokenNumber;
         appointment.status = "approved";
+
         await appointment.save();
+
         return res.status(200).json({
             success: true,
             message: "Appointment approved successfully."
         });
 
+    } catch (err) {
+        console.error(err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+// Reject Patient Appointment function
+export const rejectAppointment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rejectionReason } = req.body;
+
+        // Check required fields
+        if (!rejectionReason?.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Rejection reason is required."
+            });
+        }
+
+        // Find doctor profile
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+        if (!doctor) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor profile not found."
+            });
+        }
+
+        // Find appointment
+        const appointment = await Appointment.findById(id);
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found."
+            });
+        }
+
+        // Verify appointment belongs to logged-in doctor
+        if (appointment.doctorId.toString() !== doctor._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to reject this appointment."
+            });
+        }
+
+        // Only pending appointments can be rejected
+        if (appointment.status !== "pending") {
+            return res.status(400).json({
+                success: false,
+                message: "Only pending appointments can be rejected."
+            });
+        }
+
+        // Reject appointment
+        appointment.status = "rejected";
+        appointment.rejectionReason = rejectionReason.trim();
+        appointment.rejectedAt = new Date();
+
+        await appointment.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment rejected successfully."
+        });
 
     } catch (err) {
         console.error(err);
@@ -280,4 +379,4 @@ export const approveAppointment = async (req, res) => {
             message: "Internal Server Error"
         });
     }
-}
+};
