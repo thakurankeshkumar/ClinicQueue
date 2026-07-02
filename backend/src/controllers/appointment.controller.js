@@ -380,3 +380,75 @@ export const rejectAppointment = async (req, res) => {
         });
     }
 };
+
+// Complete Patient Appointment function
+export const completeAppointment = async (req, res) => {
+    try {
+
+        // Find doctor profile
+        const doctor = await Doctor.findOne({ userId: req.user._id });
+        if (!doctor) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor profile not found."
+            });
+        }
+
+        // Find appointment
+        const appointment = await Appointment.findById(req.params.id);
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found."
+            });
+        }
+
+        // Verify ownership
+        if (appointment.doctorId.toString() !== doctor._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to complete this appointment."
+            });
+        }
+
+        // Only approved appointments can be completed
+        if (appointment.status !== "approved") {
+            return res.status(400).json({
+                success: false,
+                message: "Only approved appointments can be completed."
+            });
+        }
+
+        // Appointment date must be today or earlier
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const appointmentDate = new Date(appointment.appointmentDate);
+        appointmentDate.setHours(0, 0, 0, 0);
+
+        if (appointmentDate > today) {
+            return res.status(400).json({
+                success: false,
+                message: "Future appointments cannot be completed."
+            });
+        }
+
+        // Complete appointment
+        appointment.status = "completed";
+        appointment.completedAt = new Date();
+
+        await appointment.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Appointment completed successfully."
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
