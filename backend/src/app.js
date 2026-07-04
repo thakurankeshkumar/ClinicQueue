@@ -62,10 +62,19 @@ app.use(morgan('dev'));
 |--------------------------------------------------------------------------
 */
 
+// Authentication routes
 app.use("/api/v1/auth", authRoutes);
+
+// Admin routes
 app.use("/api/v1/admin", adminRoutes);
+
+// Doctor routes
 app.use("/api/v1/doctor", doctorRoutes);
+
+// Appointment routes
 app.use("/api/v1/appointment", appointmentRoutes);
+
+// Patient routes
 app.use("/api/v1/patient", patientRoutes);
 
 

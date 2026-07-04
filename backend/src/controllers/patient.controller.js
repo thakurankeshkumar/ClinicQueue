@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import Appointment from "../models/Appointment.js";
 import Doctor from "../models/Doctor.js";
-import mongoose from "mongoose";
+import mongoose from "mongoose"; // Importing mongoose for Doctor ObjectId validation
 
 // Get Patient Dashboard function
 export const getPatientDashboard = async (req, res) => {
@@ -136,8 +136,7 @@ export const getDoctorDetails = async (req, res) => {
 
         // Find doctor
         const doctor = await Doctor.findOne({ _id: id, isAvailable: true, isProfileComplete: true }).populate({
-            path: "userId",
-            select: "name gender"
+            path: "userId", select: "name gender"
         }).select("userId specialization qualification experience consultationFee availableDays");
 
         if (!doctor) {
@@ -154,7 +153,6 @@ export const getDoctorDetails = async (req, res) => {
 
     } catch (err) {
         console.error(err);
-
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"

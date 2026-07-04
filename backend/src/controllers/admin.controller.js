@@ -181,7 +181,10 @@ export const rejectDoctorProfileUpdate = async (req, res) => {
             });
         }
 
+        // Delete the request after rejection
         await updateRequest.deleteOne();
+
+        // Returning a success response after rejecting the profile update request
         return res.status(200).json({
             success: true,
             message: "Profile update request rejected successfully."
@@ -227,19 +230,18 @@ export const getAdminDashboard = async (req, res) => {
             // Today's approved appointments
             Appointment.countDocuments({ status: "approved", appointmentDate: { $gte: startOfDay, $lte: endOfDay } }),
 
+            // Today's approved appointments
             Appointment.countDocuments({ status: "completed", completedAt: { $gte: startOfDay, $lte: endOfDay } })
 
         ]);
 
         return res.status(200).json({
-            success: true, totalDoctors,
-            totalPatients, pendingDoctors,
+            success: true, totalDoctors, totalPatients, pendingDoctors,
             pendingProfileRequests, todayAppointments, completedAppointmentsToday
         });
 
     } catch (err) {
         console.error(err);
-
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"
