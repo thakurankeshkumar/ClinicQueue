@@ -7,7 +7,7 @@ function AppointmentHistory() {
         { label: "My Profile", path: "/doctor/profile" },
         { label: "Appointment Requests", path: "/doctor/appointments" },
         { label: "Appointment History", path: "/doctor/history" },
-        { label: "Logout", path: "/login" },
+        { label: "Logout", action: "logout" },
     ];
 
     const appointments = [

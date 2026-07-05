@@ -6,7 +6,7 @@ function PendingDoctors() {
         { label: "Dashboard", path: "/admin/dashboard" },
         { label: "Pending Doctors", path: "/admin/doctors" },
         { label: "Profile Requests", path: "/admin/profile-requests" },
-        { label: "Logout", path: "/login" },
+        { label: "Logout", action: "logout" },
     ];
 
     const doctors = [
