@@ -13,12 +13,14 @@ function LoginPage() {
                 <form className="mt-8 space-y-5">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                        <input type="email" placeholder="Enter your email" className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-600"/>
+                        <input type="email" placeholder="Enter your email"
+                            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-600" />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-                        <input type="password" placeholder="Enter your password" className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-600" />
+                        <input type="password" placeholder="Enter your password"
+                            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-600" />
                     </div>
                     <button className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700">Login</button>
                 </form>
