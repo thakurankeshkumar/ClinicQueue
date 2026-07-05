@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute"
 // Landing Page Import 
 import LandingPage from "./pages/LandingPage";
 // Authentication Routes 
@@ -23,23 +25,23 @@ import ProfileRequests from "./pages/admin/ProfileRequests";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
       {/* Patient Routes  */}
-      <Route path="/patient/dashboard" element={<PatientDashboard />} />
-      <Route path="/patient/doctors" element={<Doctors />} />
-      <Route path="/patient/doctors/:id" element={<DoctorDetails />} />
-      <Route path="/patient/appointments" element={<MyAppointments />} />
+      <Route path="/patient/doctors" element={<ProtectedRoute allowedRoles={["patient"]}><Doctors /></ProtectedRoute>} />
+      <Route path="/patient/doctors/:id" element={<ProtectedRoute allowedRoles={["patient"]}><DoctorDetails /></ProtectedRoute>} />
+      <Route path="/patient/dashboard" element={<ProtectedRoute allowedRoles={["patient"]}><PatientDashboard /></ProtectedRoute>} />
+      <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={["patient"]}><MyAppointments /></ProtectedRoute>} />
       {/* Doctor Routes  */}
-      <Route path="/doctor/profile" element={<Profile />} />
-      <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-      <Route path="/doctor/history" element={<AppointmentHistory />} />
-      <Route path="/doctor/appointments" element={<AppointmentRequests />} />
+      <Route path="/doctor/profile" element={<ProtectedRoute allowedRoles={["doctor"]}><Profile /></ProtectedRoute>} />
+      <Route path="/doctor/dashboard" element={<ProtectedRoute allowedRoles={["doctor"]}><DoctorDashboard /></ProtectedRoute>} />
+      <Route path="/doctor/history" element={<ProtectedRoute allowedRoles={["doctor"]}><AppointmentHistory /></ProtectedRoute>} />
+      <Route path="/doctor/appointments" element={<ProtectedRoute allowedRoles={["doctor"]}><AppointmentRequests /></ProtectedRoute>} />
       {/* Admin Routes  */}
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/doctors" element={<PendingDoctors />} />
-      <Route path="/admin/profile-requests" element={<ProfileRequests />} />
+      <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/doctors" element={<ProtectedRoute allowedRoles={["admin"]}><PendingDoctors /></ProtectedRoute>} />
+      <Route path="/admin/profile-requests" element={<ProtectedRoute allowedRoles={["admin"]}><ProfileRequests /></ProtectedRoute>} />
     </Routes>
   );
 }
