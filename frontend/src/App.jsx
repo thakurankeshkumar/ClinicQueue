@@ -16,6 +16,8 @@ import AppointmentRequests from "./pages/doctor/AppointmentRequests";
 import AppointmentHistory from "./pages/doctor/AppointmentHistory";
 // Admin Routes 
 import AdminDashboard from "./pages/admin/Dashboard";
+import PendingDoctors from "./pages/admin/PendingDoctors";
+import ProfileRequests from "./pages/admin/ProfileRequests";
 
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
       <Route path="/doctor/appointments" element={<AppointmentRequests />} />
       {/* Admin Routes  */}
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/doctors" element={<PendingDoctors />} />
+      <Route path="/admin/profile-requests" element={<ProfileRequests />} />
     </Routes>
   );
 }
