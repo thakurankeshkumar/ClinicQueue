@@ -345,7 +345,7 @@ export const getDoctorDashboard = async (req, res) => {
             Appointment.find({ doctorId: doctor._id }).populate({
                 path: "patientId", select: "name gender email"
             })
-                .select("patientId reasonForVisit rejectionReason preferredDate appointmentDate appointmentTime duration tokenNumber status completedAt updatedAt")
+                .select("patientId reasonForVisit rejectionReason preferredDate appointmentDate appointmentTime duration tokenNumber status completedAt rejectedAt updatedAt")
                 .sort({ updatedAt: -1 })
 
         ]);
