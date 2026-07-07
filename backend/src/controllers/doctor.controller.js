@@ -314,7 +314,7 @@ export const getDoctorDashboard = async (req, res) => {
         endOfDay.setHours(23, 59, 59, 999);
 
         // Dashboard data
-        const [todayAppointments, pendingRequests, completedToday, upcomingAppointments, recentAppointments] = await Promise.all([
+        const [todayAppointments, pendingRequests, completedToday, upcomingAppointments, recentAppointments, allAppointments] = await Promise.all([
 
             // Today's approved appointments
             Appointment.countDocuments({
@@ -338,15 +338,26 @@ export const getDoctorDashboard = async (req, res) => {
             }),
 
             // Recent appointments
-            Appointment.find({ doctorId: doctor._id }).populate({ path: "patientId", select: "name gender" }).select(
-                "patientId reasonForVisit rejectionReason appointmentDate appointmentTime tokenNumber status updatedAt").sort({ updatedAt: -1 }).limit(5)
+            Appointment.find({ doctorId: doctor._id }).populate({ path: "patientId", select: "name gender email" })
+                .select("patientId reasonForVisit rejectionReason appointmentDate appointmentTime tokenNumber status updatedAt").sort({ updatedAt: -1 }).limit(5),
+
+            // All appointments (for history page)
+            Appointment.find({ doctorId: doctor._id }).populate({
+                path: "patientId", select: "name gender email"
+            })
+                .select("patientId reasonForVisit rejectionReason preferredDate appointmentDate appointmentTime duration tokenNumber status completedAt updatedAt")
+                .sort({ updatedAt: -1 })
 
         ]);
 
         return res.status(200).json({
-            success: true, todayAppointments,
-            pendingRequests, completedToday,
-            upcomingAppointments, recentAppointments
+            success: true,
+            todayAppointments,
+            pendingRequests,
+            completedToday,
+            upcomingAppointments,
+            recentAppointments,
+            allAppointments
         });
 
     } catch (err) {
