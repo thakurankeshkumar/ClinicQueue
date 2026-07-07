@@ -1,5 +1,7 @@
 import api from "./axios";
 
+export const getAdminDashboard = () => api.get("/admin/dashboard");
+
 export const getPendingDoctors = () => api.get("/admin/doctors/pending");
 
 export const approveDoctor = (id) => api.patch(`/admin/doctors/${id}/approve`);
