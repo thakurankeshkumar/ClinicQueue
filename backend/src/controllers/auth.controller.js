@@ -191,7 +191,8 @@ export const loginUser = async (req, res) => {
         res.cookie("accessToken", token, {
             httpOnly: true,
             secure: env.NODE_ENV === "production",
-            maxAge: Number(env.COOKIE_MAX_AGE)
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: Number(env.COOKIE_MAX_AGE),
         });
 
 

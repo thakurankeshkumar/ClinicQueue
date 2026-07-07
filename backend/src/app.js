@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
+import { env } from "./config/env.js"
 import cookieParser from 'cookie-parser';
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -10,6 +11,8 @@ import appointmentRoutes from "./routes/appointment.routes.js";
 import patientRoutes from "./routes/patient.routes.js";
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +29,7 @@ app.use(helmet());
 */
 
 app.use(cors({
-    origin: true,
+    origin: env.CLIENT_URL,
     credentials: true
 }))
 
