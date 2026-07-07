@@ -130,7 +130,9 @@ export const getDoctorAppointments = async (req, res) => {
 
         // Get pending appointment requests
         const appointments = await Appointment.find({
-            doctorId: doctor._id, status: "pending"
+            doctorId: doctor._id, status: {
+                $in: ["pending", "approved"]
+            }
         }).select("-__v").populate({
             path: "patientId", select: "name gender email"
         }).sort({ createdAt: 1 });
@@ -173,8 +175,8 @@ export const approveAppointment = async (req, res) => {
         }
 
         // Validate appointment date
-        const selectedDate = new Date(appointmentDate);
-        const today = new Date();
+        const [year, month, day] = appointmentDate.split("-").map(Number);
+        const selectedDate = new Date(year, month - 1, day);
 
         if (isNaN(selectedDate.getTime())) {
             return res.status(400).json({
@@ -183,8 +185,9 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
+        const today = new Date();
         today.setHours(0, 0, 0, 0);
-        selectedDate.setHours(0, 0, 0, 0);
+
         if (selectedDate < today) {
             return res.status(400).json({
                 success: false,
@@ -192,8 +195,9 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        // Validate appointment time (24-hour HH:mm)
+        // Validate appointment time
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
         if (!timeRegex.test(appointmentTime)) {
             return res.status(400).json({
                 success: false,
@@ -215,6 +219,7 @@ export const approveAppointment = async (req, res) => {
 
         // Find appointment
         const appointment = await Appointment.findById(id);
+
         if (!appointment) {
             return res.status(404).json({
                 success: false,
@@ -222,7 +227,7 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        // Verify appointment belongs to logged-in doctor
+        // Verify ownership
         if (appointment.doctorId.toString() !== doctor._id.toString()) {
             return res.status(403).json({
                 success: false,
@@ -249,9 +254,23 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
+        // Check duplicate appointment
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
         const existingAppointment = await Appointment.findOne({
-            doctorId: doctor._id, appointmentDate: selectedDate,
-            appointmentTime, status: "approved"
+            doctorId: doctor._id,
+            appointmentDate: {
+                $gte: startOfDay,
+                $lte: endOfDay,
+            },
+            appointmentTime,
+            status: {
+                $in: ["approved", "completed"],
+            },
         });
 
         if (existingAppointment) {
@@ -261,7 +280,7 @@ export const approveAppointment = async (req, res) => {
             });
         }
 
-        // Generate queue token from appointment time
+        // Generate queue token
         const tokenNumber = Number(appointmentTime.replace(":", ""));
 
         // Approve appointment
@@ -270,12 +289,20 @@ export const approveAppointment = async (req, res) => {
         appointment.duration = duration;
         appointment.tokenNumber = tokenNumber;
         appointment.status = "approved";
+        appointment.approvedAt = new Date();
 
         await appointment.save();
 
+        // Populate patient details before returning
+        await appointment.populate({
+            path: "patientId",
+            select: "name gender email"
+        });
+
         return res.status(200).json({
             success: true,
-            message: "Appointment approved successfully."
+            message: "Appointment approved successfully.",
+            appointment
         });
 
     } catch (err) {

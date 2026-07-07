@@ -47,6 +47,9 @@ const appointmentSchema = new mongoose.Schema({
     completedAt: {
         type: Date,
     },
+    approvedAt: {
+        type: Date,
+    },
     rejectedAt: {
         type: Date,
     },

@@ -24,6 +24,11 @@ const doctorSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    qualification: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     experience: {
         type: Number,
         required: true,

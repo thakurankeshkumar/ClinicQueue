@@ -109,10 +109,13 @@ export const getDoctorProfile = async (req, res) => {
             });
         }
 
+        const pendingRequest = await DoctorUpdateRequest.findOne({ doctorId: doctor._id, status: "pending" });
+
         return res.status(200).json({
             success: true,
             message: "Doctor profile retrieved successfully.",
-            doctor
+            doctor,
+            hasPendingRequest: !!pendingRequest
         })
 
     } catch (err) {
