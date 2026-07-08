@@ -55,7 +55,7 @@ function LandingPage() {
 
                 {/* Hero Illustration */}
 
-                <div className="flex h-[420px] w-full max-w-lg items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white">
+                <div className="flex h-105 w-full max-w-lg items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white">
                     <p className="text-slate-500"> Healthcare Illustration</p>
                 </div>
             </section>
