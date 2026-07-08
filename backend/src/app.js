@@ -65,6 +65,15 @@ app.use(morgan('dev'));
 |--------------------------------------------------------------------------
 */
 
+// Health Check API Route
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "ClinicQueue Backend API is running 🚀",
+    });
+});
+
+
 // Authentication routes
 app.use("/api/v1/auth", authRoutes);
 
