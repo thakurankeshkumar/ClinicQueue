@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import { getDoctorProfile, completeDoctorProfile, updateDoctorProfile, } from "../../api/doctor";
 import useAuth from "../../context/auth/useAuth";
+import { BadgeIndianRupee, CalendarDays, Clock3, Phone, Save, ShieldCheck, Stethoscope } from "lucide-react";
 
 function Profile() {
     const { user } = useAuth();
@@ -121,7 +122,10 @@ function Profile() {
     if (loading) {
         return (
             <DashboardLayout title={user?.name || "Doctor"} role="Doctor" menuItems={menuItems}>
-                <h2 className="text-2xl font-semibold">Loading Profile...</h2>
+                <div className="space-y-6 animate-pulse">
+                    <div className="h-40 rounded-[2rem] border border-slate-200 bg-slate-100" />
+                    <div className="h-96 rounded-[2rem] border border-slate-200 bg-slate-100" />
+                </div>
             </DashboardLayout>
         );
 
@@ -137,81 +141,91 @@ function Profile() {
     }
     return (
         <DashboardLayout title={user?.name || "Doctor"} role="Doctor" menuItems={menuItems}>
+            <div className="space-y-7">
+                <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-600">Professional profile</p>
+                            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">My Professional Profile</h1>
+                            <p className="mt-3 max-w-2xl text-slate-600">Manage the details patients and admins use to verify your clinic availability.</p>
+                        </div>
+                        <div className={`rounded-2xl border px-5 py-4 ${isProfileComplete ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+                            <div className="flex items-center gap-2 font-semibold">
+                                <ShieldCheck className="h-4 w-4" />
+                                {isProfileComplete ? "Profile complete" : "Profile incomplete"}
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-            <h1 className="text-3xl font-bold">My Professional Profile</h1>
-            <p className="mt-2 text-slate-600">Manage your professional information.</p>
+                {error && (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+                )}
 
-            {error && (
-                <div className="mt-6 rounded-lg bg-red-100 p-4 text-red-700">{error}</div>
-            )}
+                {success && (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700">{success}</div>
+                )}
 
-            {success && (
-                <div className="mt-6 rounded-lg bg-green-100 p-4 text-green-700">{success}</div>
-            )}
+                {isProfileComplete && hasPendingRequest && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+                        Your profile update request is awaiting admin approval. You cannot make further changes until it is reviewed.
+                    </div>
+                )}
 
-            {isProfileComplete && hasPendingRequest && (
-                <div className="mt-6 rounded-lg border border-yellow-300 bg-yellow-100 p-4 text-yellow-800">
-                    Your profile update request is awaiting admin approval.
-                    You cannot make further changes until it is reviewed.
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="mt-8 rounded-xl bg-white p-8 shadow">
-
-                <div className="grid gap-6 md:grid-cols-2">
-                    <div>
-                        <label className="mb-2 block font-medium">Phone Number</label>
-                        <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} disabled={isProfileComplete && hasPendingRequest}
-                            className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-600 disabled:bg-slate-100" />
+                <form onSubmit={handleSubmit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                    <div className="grid gap-5 md:grid-cols-2">
+                        {[
+                            ["Phone Number", "phoneNumber", "text", Phone],
+                            ["Specialization", "specialization", "text", Stethoscope],
+                            ["Qualification", "qualification", "text", ShieldCheck],
+                            ["Experience (Years)", "experience", "number", Clock3],
+                            ["Consultation Fee (₹)", "consultationFee", "number", BadgeIndianRupee],
+                        ].map(([label, name, type, Icon]) => (
+                            <div key={name}>
+                                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                    <Icon className="h-4 w-4 text-slate-400" />
+                                    {label}
+                                </label>
+                                <input
+                                    type={type}
+                                    name={name}
+                                    value={formData[name]}
+                                    onChange={handleChange}
+                                    disabled={isProfileComplete && hasPendingRequest}
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+                                />
+                            </div>
+                        ))}
                     </div>
 
-                    <div>
-                        <label className="mb-2 block font-medium">Specialization</label>
+                    <div className="mt-8">
+                        <label className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                            <CalendarDays className="h-4 w-4 text-slate-400" />
+                            Available Days
+                        </label>
 
-                        <input type="text" name="specialization" value={formData.specialization} onChange={handleChange} disabled={isProfileComplete && hasPendingRequest}
-                            className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-600 disabled:bg-slate-100" />
+                        <div className="flex flex-wrap gap-3">
+                            {days.map((day) => {
+                                const selected = formData.availableDays.includes(day);
+                                return (
+                                    <button key={day} type="button" disabled={isProfileComplete && hasPendingRequest} onClick={() => handleDayToggle(day)} className={`rounded-2xl border px-5 py-2.5 text-sm font-semibold transition ${selected
+                                        ? "border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-600/15" : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"} ${isProfileComplete && hasPendingRequest
+                                            ? "cursor-not-allowed opacity-60" : ""}`}>
+                                        {day}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="mb-2 block font-medium">Qualification</label>
-
-                        <input type="text" name="qualification" value={formData.qualification} onChange={handleChange} disabled={isProfileComplete && hasPendingRequest}
-                            className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-600 disabled:bg-slate-100" />
-                    </div>
-
-                    <div>
-                        <label className="mb-2 block font-medium">Experience (Years)</label>
-                        <input type="number" name="experience" value={formData.experience} onChange={handleChange} disabled={isProfileComplete && hasPendingRequest}
-                            className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-600 disabled:bg-slate-100" />
-                    </div>
-                    <div>
-                        <label className="mb-2 block font-medium">Consultation Fee (₹)</label>
-                        <input type="number" name="consultationFee" value={formData.consultationFee} onChange={handleChange} disabled={isProfileComplete && hasPendingRequest}
-                            className="w-full rounded-xl border px-4 py-3 outline-none focus:border-blue-600 disabled:bg-slate-100" />
-                    </div>
-                </div>
-
-                <div className="mt-8">
-                    <label className="mb-4 block font-medium">Available Days</label>
-
-                    <div className="flex flex-wrap gap-3">
-                        {days.map((day) => {
-                            const selected = formData.availableDays.includes(day);
-                            return (
-                                <button key={day} type="button" disabled={isProfileComplete && hasPendingRequest} onClick={() => handleDayToggle(day)} className={`rounded-xl border px-5 py-2 transition ${selected
-                                    ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white text-slate-700"} ${hasPendingRequest
-                                        ? "cursor-not-allowed opacity-60" : ""}`}>
-                                    {day}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-                <button type="submit" disabled={saving || (isProfileComplete && hasPendingRequest)}
-                    className="mt-10 rounded-xl bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >{saving ? "Saving..." : isProfileComplete ? "Request Profile Update" : "Complete Profile"}
-                </button>
-            </form>
+                    <button type="submit" disabled={saving || (isProfileComplete && hasPendingRequest)}
+                        className="mt-10 inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-8 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <Save className="h-4 w-4" />
+                        {saving ? "Saving..." : isProfileComplete ? "Request Profile Update" : "Complete Profile"}
+                    </button>
+                </form>
+            </div>
         </DashboardLayout >
     );
 

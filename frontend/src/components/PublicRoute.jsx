@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import useAuth from "../context/auth/useAuth";
+import FullScreenLoader from "./FullScreenLoader";
 
 function PublicRoute({ children }) {
 
@@ -7,9 +8,7 @@ function PublicRoute({ children }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <h2 className="text-xl font-semibold">Loading...</h2>
-            </div>
+            <FullScreenLoader title="Loading ClinicQueue" subtitle="Preparing your session." />
         );
     }
 

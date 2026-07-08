@@ -103,7 +103,7 @@ export const getAvailableDoctors = async (req, res) => {
                 select: "name gender"
             })
             .select(
-                "userId specialization qualification experience consultationFee availableDays"
+                "userId specialization qualification experience consultationFee availableDays isProfileVerified"
             );
 
         return res.status(200).json({
@@ -137,7 +137,7 @@ export const getDoctorDetails = async (req, res) => {
         // Find doctor
         const doctor = await Doctor.findOne({ _id: id, isAvailable: true, isProfileComplete: true }).populate({
             path: "userId", select: "name gender"
-        }).select("userId specialization qualification experience consultationFee availableDays");
+        }).select("userId specialization qualification experience consultationFee availableDays isProfileVerified");
 
         if (!doctor) {
             return res.status(404).json({

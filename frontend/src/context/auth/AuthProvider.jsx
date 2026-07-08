@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AuthContext from "./AuthContext";
 import { getProfile } from "../../api/auth";
 
 export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const authValue = useMemo(() => ({
+        user,
+        setUser,
+        loading,
+        isAuthenticated: !!user,
+    }), [user, loading]);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -24,7 +30,7 @@ export default function AuthProvider({ children }) {
 
     return (
         <AuthContext.Provider
-            value={{ user, setUser, loading, isAuthenticated: !!user, }}>
+            value={authValue}>
             {children}
         </AuthContext.Provider>
     );
