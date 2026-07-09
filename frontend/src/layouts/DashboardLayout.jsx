@@ -75,7 +75,7 @@ function DashboardLayout({ title, role, menuItems, children }) {
                 </header>
 
                 <div className="mt-3 grid flex-1 gap-3 lg:grid-cols-[312px_minmax(0,1fr)] lg:gap-4">
-                    <aside className="hidden rounded-[1.75rem] border border-slate-200 bg-white/92 p-4 shadow-[0_18px_50px_-35px_rgba(15,23,42,0.24)] backdrop-blur-xl lg:flex lg:flex-col">
+                    <aside className="hidden self-start rounded-[1.75rem] border border-slate-200 bg-white/92 p-4 shadow-[0_18px_50px_-35px_rgba(15,23,42,0.24)] backdrop-blur-xl lg:sticky lg:top-28 lg:flex lg:max-h-[calc(100vh-8rem)] lg:flex-col">
                         <div className="rounded-3xl bg-[linear-gradient(180deg,#0F172A_0%,#111827_100%)] p-5 text-white shadow-[0_20px_80px_-50px_rgba(15,23,42,0.7)]">
                             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/45">Active workspace</p>
                             <div className="mt-4 flex items-center justify-between gap-3">
