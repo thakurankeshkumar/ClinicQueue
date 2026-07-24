@@ -1,33 +1,37 @@
 # ClinicQueue
 
-ClinicQueue is a full-stack clinic appointment management system with a React frontend and a Node.js/Express backend. It supports patient, doctor, and admin workflows with cookie-based authentication, role-based access, and a doctor approval flow.
+ClinicQueue is a full-stack clinic appointment and queue management system. It gives patients a simple way to find doctors and request appointments, gives doctors tools to manage profiles and appointment queues, and gives admins a control area for doctor approvals and profile verification.
 
-## What This Project Does
+The project is organized as two separate applications:
 
-- Patient registration and login
-- Doctor registration with admin approval
-- JWT authentication stored in an HTTP-only cookie
-- Role-based routing for patient, doctor, and admin users
-- Doctor profile creation and profile update approval flow
-- Appointment request, approval, rejection, and completion flow
-- Separate dashboards for patient, doctor, and admin users
-- Frontend API integration with Axios and protected routes
+- `frontend/` - React and Vite single-page application for patients, doctors, and admins.
+- `backend/` - Node.js, Express, and MongoDB REST API that handles authentication, authorization, appointments, dashboards, and approval workflows.
+
+## Project Overview
+
+ClinicQueue supports three main user roles.
+
+- Patients can register, log in, browse available doctors, view doctor details, request appointments, and track appointment status.
+- Doctors can register, wait for admin approval, complete their professional profile, request profile updates, approve or reject appointment requests, complete visits, and view appointment history.
+- Admins can monitor platform activity, approve or reject doctor registrations, and review doctor profile update requests.
+
+Authentication is handled by the backend using JWTs stored in an HTTP-only cookie. The frontend sends requests with credentials enabled, and protected routes are separated by user role.
+
+## Main Features
+
+- Patient and doctor registration
+- Doctor registration approval by admin
+- Cookie-based JWT login and logout
+- Role-based frontend routing
+- Role-based backend API protection
+- Doctor profile creation and admin verification flow
+- Doctor profile update request flow
+- Patient appointment request flow
+- Doctor appointment approval, rejection, queue token assignment, and completion
+- Patient, doctor, and admin dashboards
+- Responsive healthcare-focused UI
 
 ## Tech Stack
-
-### Backend
-
-- Node.js
-- Express.js 5
-- MongoDB
-- Mongoose
-- JWT
-- bcryptjs
-- cookie-parser
-- cors
-- helmet
-- morgan
-- dotenv
 
 ### Frontend
 
@@ -36,58 +40,77 @@ ClinicQueue is a full-stack clinic appointment management system with a React fr
 - React Router
 - Axios
 - Tailwind CSS
-- react-hook-form
-- zod
-- sonner
-- Zustand
+- Lucide React icons
+
+### Backend
+
+- Node.js 22
+- Express 5
+- MongoDB
+- Mongoose
+- JSON Web Tokens
+- bcryptjs
+- cookie-parser
+- cors
+- helmet
+- morgan
+- dotenv
 
 ## Project Structure
 
-- `backend/` contains the Express API, database connection, auth middleware, controllers, models, and routes.
-- `frontend/` contains the React UI, route guards, API clients, pages, layouts, and auth context.
-- The root `README.md` gives the overall project overview and backend API summary.
+```text
+ClinicQueue/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── package.json
+│   └── README.md
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── package.json
+│   └── README.md
+└── README.md
+```
 
-## Frontend Overview
+## Quick Start
 
-The frontend is a role-aware single-page app with these major routes:
-
-- Public: landing page, login, register
-- Patient: doctor list, doctor details, dashboard, my appointments
-- Doctor: profile, dashboard, appointment requests, appointment history
-- Admin: dashboard, pending doctors, profile requests
-
-The app uses a shared Axios instance with `withCredentials: true` so browser cookies are sent with protected requests.
-
-## Backend Overview
-
-The backend exposes REST APIs under `/api/v1` and uses cookie-based auth for protected routes.
-
-### Authentication flow
-
-- Patients and doctors can register through `/api/v1/auth/register/patient` and `/api/v1/auth/register/doctor`.
-- Login happens through `/api/v1/auth/login`.
-- The backend sets an HTTP-only `accessToken` cookie.
-- `/api/v1/auth/profile` returns the current authenticated user.
-- `/api/v1/auth/logout` clears the auth cookie.
-
-### Role rules
-
-- `patient` users can browse doctors, book appointments, and view their own appointment history.
-- `doctor` users can manage their profile, approve or reject appointments, and complete visits.
-- `admin` users can approve doctors and review doctor profile update requests.
-
-## Backend Setup
-
-### Install dependencies
+Install and run the backend:
 
 ```bash
 cd backend
 npm install
+npm run dev
 ```
 
-### Environment variables
+Install and run the frontend:
 
-Create `backend/.env` with:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend expects the backend API base URL in `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:5000/api/v1
+```
+
+The backend expects configuration in `backend/.env`:
 
 ```env
 PORT=5000
@@ -99,146 +122,7 @@ COOKIE_MAX_AGE=604800000
 CLIENT_URL=http://localhost:5173
 ```
 
-`CLIENT_URL` should match the frontend origin so CORS works with cookies.
+## Documentation
 
-### Run the backend
-
-```bash
-npm run dev
-```
-
-## Frontend Setup
-
-### Install dependencies
-
-```bash
-cd frontend
-npm install
-```
-
-### Environment variables
-
-Create `frontend/.env` with:
-
-```env
-VITE_API_URL=http://localhost:5000/api/v1
-```
-
-### Run the frontend
-
-```bash
-npm run dev
-```
-
-## Authentication and CORS
-
-- Authentication is cookie-based, not token-in-local-storage based.
-- Frontend requests must use `withCredentials: true`.
-- The backend enables CORS with credentials and allows the configured `CLIENT_URL`.
-- Protected endpoints require a valid `accessToken` cookie.
-- Role-protected routes return access denied responses when the role does not match.
-
-## API Base Paths
-
-- `/api/v1/auth`
-- `/api/v1/admin`
-- `/api/v1/doctor`
-- `/api/v1/patient`
-- `/api/v1/appointment`
-
-## Core Data Models
-
-### User
-
-- `name`
-- `email`
-- `password`
-- `gender`
-- `role` as `admin`, `doctor`, or `patient`
-- `accountStatus` as `pending`, `approved`, or `rejected`
-
-### Doctor
-
-- `userId`
-- `email`
-- `phoneNumber`
-- `specialization`
-- `qualification`
-- `experience`
-- `consultationFee`
-- `availableDays`
-- `isAvailable`
-- `isProfileComplete`
-- `isProfileVerified`
-
-### Appointment
-
-- `patientId`
-- `doctorId`
-- `preferredDate`
-- `appointmentDate`
-- `appointmentTime`
-- `duration`
-- `tokenNumber`
-- `reasonForVisit`
-- `rejectionReason`
-- `status`
-- `completedAt`
-- `rejectedAt`
-
-### DoctorUpdateRequest
-
-- `doctorId`
-- `requestedBy`
-- `phoneNumber`
-- `specialization`
-- `qualification`
-- `experience`
-- `consultationFee`
-- `availableDays`
-- `status`
-
-## Main Backend Features
-
-### Auth
-
-- Patient and doctor registration
-- Login with HTTP-only cookies
-- Auth profile retrieval
-- Logout
-
-### Admin
-
-- Dashboard counts
-- Pending doctor approvals
-- Approve or reject doctor registrations
-- Review and approve or reject doctor profile update requests
-
-### Doctor
-
-- Create profile
-- View profile
-- Request profile updates
-- Dashboard metrics
-- Pending appointment requests
-- Approve, reject, and complete appointments
-
-### Patient
-
-- View dashboard metrics
-- Browse available doctors
-- View doctor details
-- View personal appointment list
-- Book appointments
-
-## Notes
-
-- Doctor accounts are created with `accountStatus: pending` and must be approved before login.
-- Patient accounts are created as approved by default.
-- Doctor profile verification is tracked separately from account approval.
-- Patient booking depends on doctors being available and having a complete profile.
-- There is no cancel appointment route at the moment, even though the appointment schema includes a `cancelled` status.
-
-## Developer
-
-Developed by Ankesh Kumar.
+- Read [frontend/README.md](frontend/README.md) for detailed frontend architecture, routes, pages, components, and API integration.
+- Read [backend/README.md](backend/README.md) for detailed backend architecture, models, middleware, routes, request rules, and workflows.
